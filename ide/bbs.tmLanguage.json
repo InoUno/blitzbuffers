@@ -1,0 +1,284 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "BlitzBuffers",
+  "scopeName": "source.blitzbuffers",
+  "patterns": [
+    {
+      "include": "#comment"
+    },
+    {
+      "include": "#enum"
+    },
+    {
+      "include": "#struct"
+    },
+    {
+      "include": "#namespace"
+    },
+    {
+      "include": "#keyword"
+    }
+  ],
+  "repository": {
+    "comment": {
+      "match": "(#|//)[^\n]*",
+      "captures": {
+        "0": {
+          "name": "comment.line"
+        }
+      }
+    },
+    "keyword": {
+      "match": "\\b(struct|enum|namespace)\\b",
+      "captures": {
+        "1": {
+          "name": "keyword.blitzbuffers"
+        }
+      }
+    },
+    "namespace": {
+      "match": "\\b(namespace)((<)([_$[:alpha:]][_$[:alnum:]]*)(>))?\\s+([_$[:alpha:]][_$[:alnum:]]*)",
+      "captures": {
+        "1": {
+          "name": "keyword.blitzbuffers"
+        },
+        "3": {
+          "name": "markup.punctuation.bracket.blitzbuffers"
+        },
+        "4": {
+          "name": "support.class.blitzbuffers"
+        },
+        "5": {
+          "name": "markup.punctuation.bracket.blitzbuffers"
+        },
+        "6": {
+          "name": "support.class.blitzbuffers"
+        }
+      }
+    },
+    "enum": {
+      "patterns": [
+        {
+          "begin": "\\b(enum)\\s+([_$[:alpha:]][_$[:alnum:]]*)\\s*(\\{)",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.blitzbuffers"
+            },
+            "2": {
+              "name": "support.class.blitzbuffers"
+            },
+            "3": {
+              "name": "markup.punctuation.enum.beginning.blizbuffers"
+            }
+          },
+          "end": "\\},?",
+          "endCaptures": {
+            "0": {
+              "name": "markup.punctuation.enum.ending.blizbuffers"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#enum_value"
+            }
+          ]
+        },
+        {
+          "match": "\\b(enum)\\b(\\s+[_$[:alpha:]][_$[:alnum:]]*)?",
+          "captures": {
+            "1": {
+              "name": "keyword.blitzbuffers"
+            },
+            "2": {
+              "name": "support.class.blitzbuffers"
+            }
+          }
+        }
+      ]
+    },
+    "enum_value": {
+      "patterns": [
+        {
+          "include": "#enum_value_struct"
+        },
+        {
+          "include": "#enum_value_tuple"
+        },
+        {
+          "include": "#enum_value_simple"
+        }
+      ]
+    },
+    "enum_value_simple": {
+      "match": "([_$[:alpha:]][_$[:alnum:]]*)(\\[\\s*\\])*(,?)",
+      "captures": {
+        "1": {
+          "name": "support.class.blitzbuffers"
+        },
+        "3": {
+          "name": "markup.punctuation.separator.blitzbuffers"
+        }
+      }
+    },
+    "enum_value_struct": {
+      "begin": "([_$[:alpha:]][_$[:alnum:]]*)\\s*(\\{)",
+      "beginCaptures": {
+        "1": {
+          "name": "support.class.blitzbuffers"
+        },
+        "2": {
+          "name": "markup.punctuation.struct.beginning.blitzbuffers"
+        }
+      },
+      "end": "\\},?",
+      "endCaptures": {
+        "0": {
+          "name": "markup.punctuation.struct.ending.bracket.blitzbuffers"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#struct_field"
+        }
+      ]
+    },
+    "enum_value_tuple": {
+      "begin": "([_$[:alpha:]][_$[:alnum:]]*)\\s*(\\()",
+      "beginCaptures": {
+        "1": {
+          "name": "support.class.blitzbuffers"
+        },
+        "2": {
+          "name": "markup.punctuation.tuple.beginning.blitzbuffers"
+        }
+      },
+      "end": "\\),?",
+      "endCaptures": {
+        "0": {
+          "name": "markup.punctuation.tuple.ending.blitzbuffers"
+        }
+      },
+      "patterns": [
+        {
+          "match": "([_$[:alpha:]][_$[:alnum:]]*)(\\[\\s*\\])*(,?)",
+          "captures": {
+            "1": {
+              "name": "support.class.blitzbuffers"
+            },
+            "3": {
+              "name": "markup.punctuation.field.separator.blitzbuffers"
+            }
+          }
+        },
+        {
+          "begin": "\\{",
+          "beginCaptures": {
+            "0": {
+              "name": "markup.punctuation.struct.beginning.blizbuffers"
+            }
+          },
+          "end": "\\}",
+          "endCaptures": {
+            "0": {
+              "name": "markup.punctuation.struct.ending.blizbuffers"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#struct_field"
+            }
+          ]
+        }
+      ]
+    },
+    "struct": {
+      "patterns": [
+        {
+          "begin": "\\b(struct)\\s+([_$[:alpha:]][_$[:alnum:]]*)\\s*(\\{)",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.blitzbuffers"
+            },
+            "2": {
+              "name": "support.class.blitzbuffers"
+            },
+            "3": {
+              "name": "markup.punctuation.struct.beginning.blizbuffers"
+            }
+          },
+          "end": "\\},?",
+          "endCaptures": {
+            "0": {
+              "name": "markup.punctuation.struct.ending.blizbuffers"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#struct_field"
+            }
+          ]
+        },
+        {
+          "match": "\\b(struct)\\b(\\s+[_$[:alpha:]][_$[:alnum:]]*)?",
+          "captures": {
+            "1": {
+              "name": "keyword.blitzbuffers"
+            },
+            "2": {
+              "name": "support.class.blitzbuffers"
+            }
+          }
+        }
+      ]
+    },
+    "struct_field": {
+      "patterns": [
+        {
+          "include": "#struct_field_simple"
+        },
+        {
+          "include": "#struct_field_embed"
+        }
+      ]
+    },
+    "struct_field_simple": {
+      "match": "([_$[:alpha:]][_$[:alnum:]]*)((\\s*:\\s*)([_$[:alpha:]][_$[:alnum:]]*)(\\[\\s*\\])*(\\s*,?))?",
+      "captures": {
+        "1": {
+          "name": "variable.blitzbuffers"
+        },
+        "3": {
+          "name": "markup.punctuation.field.separator.blitzbuffers"
+        },
+        "4": {
+          "name": "support.class.blitzbuffers"
+        },
+        "6": {
+          "name": "markup.punctuation.field.separator.blitzbuffers"
+        }
+      }
+    },
+    "struct_field_embed": {
+      "begin": "([_$[:alpha:]][_$[:alnum:]]*)(\\s*:\\s*\\{)?",
+      "beginCaptures": {
+        "1": {
+          "name": "variable.blitzbuffers"
+        },
+        "2": {
+          "name": "markup.punctuation.struct.beginning.blizbuffers"
+        }
+      },
+      "end": "\\},?",
+      "endCaptures": {
+        "0": {
+          "name": "markup.punctuation.struct.ending.blizbuffers"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#struct_field"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,22 @@
+namespace bench_flatbuffers;
+
+enum EntityType : byte {
+    Player,
+    Enemy,
+    Neutral,
+}
+
+struct Position {
+    x: float;
+    y: float;
+    z: float;
+}
+
+table Entity {
+  type: EntityType;
+  position: Position;
+  name: string;
+  related: [Entity];
+}
+
+root_type Entity;

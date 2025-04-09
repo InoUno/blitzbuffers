@@ -1,0 +1,66 @@
+{
+    "type": "Player",
+    "name": "Blitz",
+    "aliases": ["B", "Lightning"],
+    "numbers": [
+        [[1],[2,3]],
+        [[4],[5],[6,7]],
+        [[8,9,10],[11,12,13,14,15,16]]
+    ],
+    "position": {
+        "Position": {
+            "x": 10, "y": 20, "z": 30
+        }
+    },
+    "related": [
+        {
+            "type": "Enemy",
+            "name": "R1",
+            "aliases": ["Ra", "Ra1"],
+            "numbers": [],
+            "position": "None",
+            "related": []
+        },
+        {
+            "type": "Enemy",
+            "name": "R2",
+            "aliases": [],
+            "numbers": [[[1]]],
+            "position": "NoPosition",
+            "related": []
+        },
+        {
+            "type": "Neutral",
+            "name": "R3",
+            "aliases": ["Rc", "Rc3", "R333"],
+            "numbers": [[[1],[2]],[[3]]],
+            "position": {
+                "TuplePosition": [11, 21, 31]
+            },
+            "related": [
+                {
+                    "type": "Neutral",
+                    "name": "Rsub3",
+                    "aliases": ["Rsubc"],
+                    "numbers": [[[1],[2,3,100,4,5,6]],[[987]]],
+                    "position": {
+                        "TuplePosition": [12, 22, 32]
+                    },
+                    "related": []
+                }
+            ]
+        },
+        {
+            "type": "Enemy",
+            "name": "R4",
+            "aliases": ["Rd", "Rd4"],
+            "numbers": [],
+            "position": {
+                "InlinePosition": {
+                    "x": 13, "y": 23, "z": 33
+                }
+            },
+            "related": []
+        }
+    ]
+}

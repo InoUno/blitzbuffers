@@ -1,0 +1,56 @@
+{
+	"name": "blitzbuffers",
+	"description": "BlitzBuffers",
+	"author": "InoUno <inoiown@gmail.com>",
+	"license": "MIT",
+	"version": "0.1.0",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/InoUno/blitzbuffers"
+	},
+	"publisher": "InoUno",
+	"categories": [],
+	"keywords": [],
+	"engines": {
+		"vscode": "^1.75.0"
+	},
+	"activationEvents": [
+		"onLanguage:bzb"
+	],
+	"main": "./client-vscode/out/extension",
+	"contributes": {
+		"languages": [
+			{
+				"id": "blitzbuffers",
+				"aliases": [
+					"BlitzBuffers",
+					"blitzbuffers",
+					"bzb"
+				],
+				"extensions": [
+					".bzb"
+				],
+				"configuration": "./language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "blitzbuffers",
+				"scopeName": "source.blitzbuffers",
+				"path": "./bzb.tmLanguage.json"
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "pnpm compile",
+		"package": "vsce package",
+		"compile": "tsc -b",
+		"watch": "tsc -b -w",
+		"postinstall": "cd client-vscode && pnpm install && cd ../server && pnpm install && cd .."
+	},
+	"devDependencies": {
+		"@types/node": "^20",
+		"typescript": "^5.7.2"
+	},
+	"packageManager": "pnpm@10.0.0+sha512.b8fef5494bd3fe4cbd4edabd0745df2ee5be3e4b0b8b08fa643aa3e4c6702ccc0f00d68fa8a8c9858a735a0032485a44990ed2810526c875e416f001b17df12b"
+}

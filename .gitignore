@@ -1,0 +1,13 @@
+__pycache__
+.pytest_cache
+build
+out
+target
+dist
+*.egg-info
+
+*.exe
+
+.vscode
+.vs
+_*.cpp

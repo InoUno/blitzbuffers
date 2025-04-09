@@ -1,0 +1,20 @@
+namespace bench_blitzbuffers
+
+enum EntityType {
+    Player
+    Enemy
+    Neutral
+}
+
+struct Position {
+    x: f32
+    y: f32
+    z: f32
+}
+
+struct Entity {
+  type: EntityType
+  position: Position
+  name: string
+  related: Entity[]
+}

@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "tests/interlang/rust",
+    "benchmarks/rust"
+]
+resolver = "2"

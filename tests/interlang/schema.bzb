@@ -1,0 +1,33 @@
+namespace tests_blitzbuffers
+
+struct Entity {
+  type: EntityType
+  name: string
+  aliases: string[]
+  numbers: u16[][][]
+  position: PositionEnum
+  related: Entity[]
+}
+
+enum EntityType {
+    Player
+    Enemy
+    Neutral
+}
+
+enum PositionEnum {
+    NoPosition
+    Position(Position)
+    TuplePosition(f32, f32, f32)
+    InlinePosition {
+        x: f32
+        y: f32
+        z: f32
+    }
+}
+
+struct Position {
+    x: f32
+    y: f32
+    z: f32
+}
