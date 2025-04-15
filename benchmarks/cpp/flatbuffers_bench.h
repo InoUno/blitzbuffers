@@ -43,7 +43,7 @@ namespace FlatBuffersContainer
 
 		virtual uint8_t* decode(uint8_t* buf, size_t len) override
 		{
-			auto verifier = Verifier::Verifier(buf, len);
+			auto verifier = Verifier(buf, len);
 			if (!VerifyEntityBuffer(verifier))
 			{
 				throw std::runtime_error("Invalid flatbuffer");
