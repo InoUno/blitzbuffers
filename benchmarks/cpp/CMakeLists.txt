@@ -45,34 +45,8 @@ CPMAddPackage(
 
 target_link_libraries(cpp_benchmarks flatbuffers FlatbuffersGeneratedHeaders alpaca)
 
-# Link blitzbuffers and generate header files
+# Include blitzbuffers directory
 target_include_directories(cpp_benchmarks PUBLIC "${CMAKE_SOURCE_DIR}/../../src/blitzbuffers/cpp")
-
-find_package(Python3 3.9 REQUIRED COMPONENTS Interpreter)
-
-if(${Python3_FOUND})
-	# Generate enums automatically if any changes on build
-	set(blitzbuffers_src_dir ${CMAKE_SOURCE_DIR}/../../src/blitzbuffers)
-	set(schema_file ${CMAKE_SOURCE_DIR}/../schemas/blitzbuffers.bzb)
-	set(cpp_output ${CMAKE_SOURCE_DIR}/blitzbuffers_generated.h)
-	set(rust_output ${CMAKE_SOURCE_DIR}/../rust/src/blitzbuffers_generated.rs)
-
-	add_custom_command(
-		OUTPUT ${cpp_output} ${rust_output}
-		COMMAND ${Python3_EXECUTABLE} ${blitzbuffers_src_dir} ${schema_file} -l cpp ${cpp_output} -l rust ${rust_output}
-		DEPENDS ${schema_file}
-		COMMENT "Generating blitzbuffers"
-	)
-
-	add_custom_target(
-		gen_blitzbuffers
-		DEPENDS ${cpp_output} ${rust_output} ${schema_file}
-	)
-
-	add_dependencies(cpp_benchmarks gen_blitzbuffers)
-else()
-	message(ERROR "Missing Python 3.9+ installation.")
-endif()
 
 # Setup google benchmark
 CPMAddPackage(
