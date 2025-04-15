@@ -4,6 +4,7 @@ build
 out
 target
 dist
+.venv
 *.egg-info
 
 *.exe
