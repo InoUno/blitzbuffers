@@ -1,7 +1,4 @@
 
-/**
- * This file has been auto-generated via blitzbuffers. Do not edit it directly.
- */
 #pragma once
 
 #include <cstddef>
