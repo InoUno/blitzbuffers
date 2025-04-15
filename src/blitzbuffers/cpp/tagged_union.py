@@ -409,7 +409,7 @@ def add_viewer_definition(b: OutputBuilder, d: Definition, ctx: DefinitionContex
     b.skip_line(1)
 
     # Equality operator
-    b.add_line(f"bool operator==(const Viewer& lhs, const Viewer& rhs)")
+    b.add_line(f"inline bool operator==(const Viewer& lhs, const Viewer& rhs)")
     b.add_line(f"{{")
     b.increment_indent()
 
