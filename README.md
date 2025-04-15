@@ -1,5 +1,8 @@
 # ⚡BlitzBuffers
 
+[![CI](https://github.com/InoUno/blitzbuffers/actions/workflows/build.yml/badge.svg)](https://github.com/InoUno/blitzbuffers/actions/workflows/build.yml)
+[![PyPI version](https://badge.fury.io/py/blitzbuffers.svg)](https://badge.fury.io/py/blitzbuffers)
+
 BlitzBuffers is a serialization format and code-generator that makes it fast and easy to interface with the underlying data.
 
 The main purposes of BlitzBuffers is performance, versatility, and ease of use.
