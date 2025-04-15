@@ -11,6 +11,7 @@
 #include <iostream>
 #include <iterator>
 #include <optional>
+#include <sstream>
 #include <variant>
 #include <vector>
 
@@ -373,8 +374,8 @@ namespace blitzbuffers
             return length >= sizeof(T);
         }
 
-        template <typename T>
-        friend std::ostream& operator<<(std::ostream& os, const PrimitiveContainer<T, const uint8_t*>& container);
+        template <typename T2>
+        friend std::ostream& operator<<(std::ostream& os, const PrimitiveContainer<T2, const uint8_t*>& container);
     };
 
     template <typename T>
@@ -790,11 +791,11 @@ namespace blitzbuffers
             return check_vector<T>(buffer, length);
         }
 
-        template <typename T>
-        friend bool operator==(const Vector<T>& lhs, const Vector<T>& rhs);
+        template <typename T2>
+        friend bool operator==(const Vector<T2>& lhs, const Vector<T2>& rhs);
 
-        template <typename T>
-        friend std::ostream& operator<<(std::ostream& os, const Vector<T>& vector);
+        template <typename T2>
+        friend std::ostream& operator<<(std::ostream& os, const Vector<T2>& vector);
     };
 
     template <typename T>
