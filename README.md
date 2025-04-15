@@ -3,18 +3,16 @@
 [![CI](https://github.com/InoUno/blitzbuffers/actions/workflows/build.yml/badge.svg)](https://github.com/InoUno/blitzbuffers/actions/workflows/build.yml)
 [![PyPI version](https://badge.fury.io/py/blitzbuffers.svg)](https://badge.fury.io/py/blitzbuffers)
 
-BlitzBuffers is a serialization format and code-generator that makes it fast and easy to interface with the underlying data.
-
-The main purposes of BlitzBuffers is performance, versatility, and ease of use.
+BlitzBuffers is a serialization format and code generator designed for **_lightning-fast_** conversion of data to and from byte buffers by utilizing direct serialization and deserialization.
 
 ## Pros
 
-- **_Very fast_** serialization and deserialization of data.
+- **_Very fast_** serialization and deserialization of data (see [benchmarks](#benchmarks)).
 - **Cross-language support** via code generation based on a given schema file.
 - **Simple, but powerful schema syntax** featuring structs, enums, tagged unions, vectors, and strings.
 - **Zero-copy** serialization and deserialization - directly reads from and writes to the buffer.
 - **Easy-to-use API** via the generated code.
-- Code generation is done by via Python, which makes it simple to integrate into your workflow, instead of having to deal with executables or build steps of other projects.
+- **Code generation via Python**, which makes it simple to integrate into your workflow, instead of having to deal with executables or build steps of other projects.
 
 ## Cons
 
