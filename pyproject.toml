@@ -1,7 +1,7 @@
 [project]
 name = "blitzbuffers"
 description = "Code-generation library and tool for the BlitzBuffers serialization format"
-version = "0.1.1"
+version = "0.2.0"
 
 authors = [
     { name = "InoUno", email = "inoiown@gmail.com" },

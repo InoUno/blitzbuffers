@@ -219,6 +219,7 @@ pub mod blitzbuffers {
         fn add_buffer(&mut self, buffer: Vec<u8>) -> u32;
         fn get_new_buffer(&mut self, size: u32) -> &mut [u8];
         fn add_string(&mut self, str: impl AsRef<str>) -> u32;
+        fn add_string_bytes(&mut self, bytes: &[u8]) -> u32;
         fn get_size(&self) -> u32;
         fn clear(&mut self);
         fn build(&self) -> Vec<u8>;
@@ -274,9 +275,12 @@ pub mod blitzbuffers {
 
         #[inline(always)]
         fn add_string(&mut self, str: impl AsRef<str>) -> u32 {
-            let offset = self.current_size;
+            return self.add_string_bytes(str.as_ref().as_bytes());
+        }
 
-            let bytes = str.as_ref().as_bytes();
+        #[inline(always)]
+        fn add_string_bytes(&mut self, bytes: &[u8]) -> u32 {
+            let offset = self.current_size;
 
             let start = self.current_size as usize;
             self.current_size += bytes.len() as u32;
@@ -284,7 +288,7 @@ pub mod blitzbuffers {
             unsafe {
                 self.buffer
                     .get_unchecked_mut(start..end)
-                    .copy_from_slice(&bytes)
+                    .copy_from_slice(bytes)
             };
 
             self.buffer[end] = 0;
@@ -416,8 +420,11 @@ pub mod blitzbuffers {
 
         #[inline(always)]
         fn add_string(&mut self, str: impl AsRef<str>) -> u32 {
-            let bytes = str.as_ref().as_bytes();
+            return self.add_string_bytes(str.as_ref().as_bytes());
+        }
 
+        #[inline(always)]
+        fn add_string_bytes(&mut self, bytes: &[u8]) -> u32 {
             // Add 1 to make space for zero-byte at end of string
             let size = bytes.len() as u32 + 1;
             self.ensure_capacity(size);
@@ -432,7 +439,7 @@ pub mod blitzbuffers {
                 self.current_tracker
                     .buffer
                     .get_unchecked_mut(start..end)
-                    .copy_from_slice(&bytes);
+                    .copy_from_slice(bytes);
                 self.current_tracker.buffer[end] = 0x00; // Zero byte to end string
             }
             self.current_tracker.free -= size;
@@ -542,9 +549,12 @@ pub mod blitzbuffers {
 
         #[inline(always)]
         fn add_string(&mut self, str: impl AsRef<str>) -> u32 {
-            let offset = self.current_size;
+            return self.add_string_bytes(str.as_ref().as_bytes());
+        }
 
-            let bytes = str.as_ref().as_bytes();
+        #[inline(always)]
+        fn add_string_bytes(&mut self, bytes: &[u8]) -> u32 {
+            let offset = self.current_size;
 
             let start = self.current_size as usize;
             self.current_size += bytes.len() as u32;
@@ -611,6 +621,11 @@ pub mod blitzbuffers {
         #[inline(always)]
         pub fn add_string(&self, str: impl AsRef<str>) -> u32 {
             self.get_mut_backend().add_string(str)
+        }
+
+        #[inline(always)]
+        pub fn add_string_bytes(&self, bytes: &[u8]) -> u32 {
+            self.get_mut_backend().add_string_bytes(bytes)
         }
 
         #[inline(always)]
