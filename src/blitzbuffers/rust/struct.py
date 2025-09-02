@@ -627,7 +627,7 @@ def add_viewer_methods(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
                 b.add_line(f"        return &[];")
                 b.add_line(f"    }}")
                 b.add_line(f"    unsafe {{")
-                b.add_line(f"        let ptr = self.buffer.as_ptr().add(offset as usize + 1);")
+                b.add_line(f"        let ptr = self.buffer.as_ptr().add(offset as usize + { field['offset'] });")
                 b.add_line(f"        let mut len = 0;")
                 b.add_line(f"        while *ptr.add(len) != 0 {{")
                 b.add_line(f"            len += 1;")
