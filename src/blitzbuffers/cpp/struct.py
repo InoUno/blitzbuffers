@@ -8,7 +8,7 @@ from ..shared import DefinitionContext, Definition, is_enum, is_struct, is_tagge
 #
 def add_forward_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
     b.add_line(f"// Struct forward declaration { d['name'] }")
-    b.add_line(f"namespace { d["fq_name_def"] }")
+    b.add_line(f"namespace { d['fq_name_def'] }")
     b.add_line(f"{{")
     b.add_line(f"    class Raw;")
     b.add_line(f"    class Viewer;")
@@ -23,13 +23,13 @@ def add_forward_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionCont
 #
 def add_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
     b.add_line(f"// Struct declaration { d['name'] }")
-    b.add_line(f"namespace { d["fq_name_def"] }")
+    b.add_line(f"namespace { d['fq_name_def'] }")
     b.add_line(f"{{")
     b.increment_indent()
 
     b.add_line(f"constexpr static bzb::offset_t blitz_size()")
     b.add_line(f"{{")
-    b.add_line(f"    return { d["size"] };")
+    b.add_line(f"    return { d['size'] };")
     b.add_line(f"}}")
     b.skip_line(1)
 
@@ -41,20 +41,20 @@ def add_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
     b.add_line(f"static Builder<BufferBackend> new_on(BufferBackend& backend)")
     b.add_line(f"{{")
     b.add_line(f"    auto offset = backend.get_size();")
-    b.add_line(f"    auto buffer = backend.get_new_buffer({ d["fq_name"] }::blitz_size());")
+    b.add_line(f"    auto buffer = backend.get_new_buffer({ d['fq_name'] }::blitz_size());")
     b.add_line(f"    return Builder(backend, buffer, offset);")
     b.add_line(f"}}")
     b.skip_line(1)
 
     b.add_line(f"static bool check(const uint8_t* buffer, const bzb::offset_t length)")
     b.add_line(f"{{")
-    b.add_line(f"    return { d["fq_name"] }::Viewer::check(buffer, length);")
+    b.add_line(f"    return { d['fq_name'] }::Viewer::check(buffer, length);")
     b.add_line(f"}}")
     b.skip_line(1)
 
     b.add_line(f"static std::optional<Viewer> view(const uint8_t* buffer, const bzb::offset_t length)")
     b.add_line(f"{{")
-    b.add_line(f"    if (!{ d["fq_name"] }::check(buffer, length)) {{")
+    b.add_line(f"    if (!{ d['fq_name'] }::check(buffer, length)) {{")
     b.add_line(f"        return std::nullopt;")
     b.add_line(f"    }}")
     b.add_line(f"    return {{ Viewer(buffer) }};")
@@ -67,13 +67,13 @@ def add_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
     b.add_line(f"}}")
     b.skip_line(1)
 
-    b.add_line(f"static { d["fq_name"] }::Raw raw()")
+    b.add_line(f"static { d['fq_name'] }::Raw raw()")
     b.add_line(f"{{")
-    b.add_line(f"    return { d["fq_name"] }::Raw {{}};")
+    b.add_line(f"    return { d['fq_name'] }::Raw {{}};")
     b.add_line(f"}}")
     b.skip_line(1)
 
-    b.add_line(f"static { d["fq_name"] }::Raw raw({ d["fq_name"] }::Raw _raw)")
+    b.add_line(f"static { d['fq_name'] }::Raw raw({ d['fq_name'] }::Raw _raw)")
     b.add_line(f"{{")
     b.add_line(f"    return _raw;")
     b.add_line(f"}}")
@@ -87,7 +87,7 @@ def add_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
 #
 def add_definition(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
     b.add_line(f"// Struct definition { d['name'] }")
-    b.add_line(f"namespace { d["fq_name_def"] }")
+    b.add_line(f"namespace { d['fq_name_def'] }")
     b.add_line(f"{{")
     b.increment_indent()
     add_viewer_definition(b, d, ctx)
@@ -166,7 +166,7 @@ def get_viewer_field_type(ty: str, ctx: DefinitionContext, vector_format_str="bz
     if ty[0].isupper():
         other = ctx["def_mapping"][ty]
         if is_enum(other):
-            return f"bzb::PrimitiveContainer<{ other["fq_name"] }, const uint8_t*>"
+            return f"bzb::PrimitiveContainer<{ other['fq_name'] }, const uint8_t*>"
         else:
             return other["fq_name"] + "::Viewer"
 
@@ -198,7 +198,7 @@ def add_viewer_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionConte
 
             case "primitive":
                 return_ty = get_viewer_field_type(field["type"], ctx)
-                b.add_line(f"{ return_ty } _get_container_{ field["name"] }() const")
+                b.add_line(f"{ return_ty } _get_container_{ field['name'] }() const")
                 b.add_line(f"{{")
                 b.add_line(f"    return { return_ty }(this->__buffer + { field['offset'] });")
                 b.add_line(f"}}")
@@ -213,7 +213,7 @@ def add_viewer_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionConte
 
     b.add_line(f"constexpr static bzb::offset_t blitz_size()")
     b.add_line(f"{{")
-    b.add_line(f"    return { d["size"] };")
+    b.add_line(f"    return { d['size'] };")
     b.add_line(f"}}")
     b.skip_line(1)
 
@@ -223,13 +223,13 @@ def add_viewer_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionConte
     for field in d["fields"]:
         match field["kind"]:
             case "string":
-                b.add_line(f"const char* get_{ field["name"] }() const")
+                b.add_line(f"const char* get_{ field['name'] }() const")
                 b.add_line(f"{{")
-                b.add_line(f"    if (this->_get_offset_{ field["name"] }() == 0)")
+                b.add_line(f"    if (this->_get_offset_{ field['name'] }() == 0)")
                 b.add_line(f"    {{")
                 b.add_line(f'        return "";')
                 b.add_line(f"    }}")
-                b.add_line(f"    return (const char*)(__buffer + this->_get_offset_{ field["name"] }() + { field['offset'] });")
+                b.add_line(f"    return (const char*)(__buffer + this->_get_offset_{ field['name'] }() + { field['offset'] });")
                 b.add_line(f"}}")
                 b.skip_line(1)
 
@@ -238,15 +238,15 @@ def add_viewer_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionConte
                 if return_ty in PRIMITIVE_TYPES:
                     return_ty = PRIMITIVE_TYPES[return_ty]
 
-                b.add_line(f"{ return_ty } get_{ field["name"] }() const")
+                b.add_line(f"{ return_ty } get_{ field['name'] }() const")
                 b.add_line(f"{{")
-                b.add_line(f"    return this->_get_container_{ field["name"] }().value();")
+                b.add_line(f"    return this->_get_container_{ field['name'] }().value();")
                 b.add_line(f"}}")
                 b.skip_line(1)
 
             case _:
                 return_ty = get_viewer_field_type(field["type"], ctx)
-                b.add_line(f"{ return_ty } get_{ field["name"] }() const")
+                b.add_line(f"{ return_ty } get_{ field['name'] }() const")
                 b.add_line(f"{{")
                 b.add_line(f"    return { return_ty }(this->__buffer + { field['offset'] });")
                 b.add_line(f"}}")
@@ -281,7 +281,7 @@ def add_viewer_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionConte
                 checks.append(f"bzb::check_string(buffer + { field['offset'] }, length - { field['offset']})")
             case "vector":
                 checks.append(
-                    f"bzb::check_vector<{ get_viewer_field_type(field['type']['inner'], ctx, "bzb::Vector<%s>") }>(buffer + { field['offset'] }, length - { field['offset']})"
+                    f"bzb::check_vector<{ get_viewer_field_type(field['type']['inner'], ctx, 'bzb::Vector<%s>') }>(buffer + { field['offset'] }, length - { field['offset']})"
                 )
             case "primitive":
                 pass
@@ -323,7 +323,7 @@ def add_viewer_definition(b: OutputBuilder, d: Definition, ctx: DefinitionContex
     b.increment_indent()
 
     for field in d["fields"]:
-        b.add_line(f"&& lhs.get_{ field["name"] }() == rhs.get_{ field["name"] }()")
+        b.add_line(f"&& lhs.get_{ field['name'] }() == rhs.get_{ field['name'] }()")
 
     b.decrement_indent()
     b.add_line(f";")
@@ -341,15 +341,15 @@ def add_viewer_definition(b: OutputBuilder, d: Definition, ctx: DefinitionContex
     for field in d["fields"]:
         match field["kind"]:
             case "vector":
-                b.add_line(f'os << "{ field['name'] }=" << value.get_{ field['name'] }() << "; ";')
+                b.add_line(f'os << "{ field["name"] }=" << value.get_{ field["name"] }() << "; ";')
             case "string":
-                b.add_line(f'os << "{ field['name'] }=\\"" << value.get_{ field['name'] }() << "\\"; ";')
+                b.add_line(f'os << "{ field["name"] }=\\"" << value.get_{ field["name"] }() << "\\"; ";')
             case _:
                 if field["type"] == "u8" or field["type"] == "i8":
                     # If it's a byte-size, printing it will result in char rendering instead of a number
-                    b.add_line(f'os << "{ field['name'] }=" << (int)(value.get_{ field['name'] }()) << "; ";')
+                    b.add_line(f'os << "{ field["name"] }=" << (int)(value.get_{ field["name"] }()) << "; ";')
                 else:
-                    b.add_line(f'os << "{ field['name'] }=" << value.get_{ field['name'] }() << "; ";')
+                    b.add_line(f'os << "{ field["name"] }=" << value.get_{ field["name"] }() << "; ";')
 
     b.add_line(f'os << "}}";')
     b.add_line(f"return os;")
@@ -375,7 +375,7 @@ def get_builder_field_type(ty: str, ctx: DefinitionContext, vector_format_str="b
     if ty[0].isupper():
         other = ctx["def_mapping"][ty]
         if is_enum(other):
-            return f"bzb::PrimitiveContainer<{other["fq_name"]}, uint8_t*>"
+            return f"bzb::PrimitiveContainer<{ other['fq_name'] }, uint8_t*>"
         else:
             return other["fq_name"] + "::Builder<BufferBackend>"
 
@@ -408,7 +408,7 @@ def add_builder_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionCont
     b.increment_indent()
     b.add_line(f"constexpr static bzb::offset_t blitz_size()")
     b.add_line(f"{{")
-    b.add_line(f"    return { d["size"] };")
+    b.add_line(f"    return { d['size'] };")
     b.add_line(f"}}")
     b.skip_line(1)
 
@@ -421,7 +421,7 @@ def add_builder_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionCont
                 b.add_line(f"}}")
                 b.skip_line(1)
 
-                b.add_line(f"void set_{ field['name'] }({ get_raw_field_type(field["type"], ctx) } value)")
+                b.add_line(f"void set_{ field['name'] }({ get_raw_field_type(field['type'], ctx) } value)")
                 b.add_line(f"{{")
                 b.add_line(f"    this->{ sanitize_name(field['name']) }() = value;")
                 b.add_line(f"}}")

@@ -304,13 +304,13 @@ def add_builder(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
         sanitized_name = sanitize_name(field["name"])
         match field["kind"]:
             case "primitive":
-                b.add_line(f"self.set_{ field['name'] }(other.get_{ field["name"] }());")
+                b.add_line(f"self.set_{ field['name'] }(other.get_{ field['name'] }());")
             case "string":
-                b.add_line(f"self.insert_{ field['name'] }_bytes(other.get_{ field["name"] }_bytes());")
+                b.add_line(f"self.insert_{ field['name'] }_bytes(other.get_{ field['name'] }_bytes());")
             case "embed":
-                b.add_line(f"self.{ sanitized_name }().copy_from(&other.get_{ field["name"] }());")
+                b.add_line(f"self.{ sanitized_name }().copy_from(&other.get_{ field['name'] }());")
             case "vector":
-                b.add_line(f"self.copy_from_{ field['name'] }(other.get_{ field["name"] }());")
+                b.add_line(f"self.copy_from_{ field['name'] }(other.get_{ field['name'] }());")
             case kind:
                 b.add_line(f"todo!(\"Unsupported blitzbuffers kind '{kind}' for field: { field['name'] }\");")
 
@@ -401,19 +401,21 @@ def add_builder_methods(b: OutputBuilder, d: Definition, ctx: DefinitionContext)
             case "vector":
 
                 # Get pointer
+                ty = get_builder_field_type(field["type"], ctx, "bzb::BlitzVectorWriterPointer<'a, Backend, %s>")
                 b.add_line(f"#[inline(always)]")
                 b.add_line(f"pub fn ptr_{ field['name'] }(&mut self)")
-                b.add_line(f"-> { get_builder_field_type(field['type'], ctx, "bzb::BlitzVectorWriterPointer<'a, Backend, %s>") } {{")
+                b.add_line(f"-> { ty } {{")
                 b.add_line(f"    bzb::BlitzVectorWriterPointer::new_at_offset(self.backend, self.buffer, self.self_offset, { field['offset'] })")
                 b.add_line(f"}}")
                 b.skip_line(1)
 
                 # Insert
+                ty = get_builder_field_type(field["type"], ctx, "bzb::BlitzVectorWriter<'a, Backend, %s>")
                 b.add_line(f"#[inline(always)]")
                 b.add_line(f"pub fn insert_{ field['name'] }(")
                 b.add_line(f"    &mut self,")
                 b.add_line(f"    len: u32,")
-                b.add_line(f") -> { get_builder_field_type(field['type'], ctx, "bzb::BlitzVectorWriter<'a, Backend, %s>") } {{")
+                b.add_line(f") -> { ty } {{")
                 b.add_line(f"    let offset = self.backend.get_size() - self.self_offset - { field['offset'] };")
                 b.add_line(f"    unsafe {{")
                 b.add_line(f"        self.buffer")

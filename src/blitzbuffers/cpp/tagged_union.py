@@ -143,7 +143,7 @@ def add_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
 
     b.add_line(f"static std::optional<Viewer> view(const uint8_t* buffer, const bzb::offset_t length)")
     b.add_line(f"{{")
-    b.add_line(f"    if (!{ d["fq_name"] }::check(buffer, length)) {{")
+    b.add_line(f"    if (!{ d['fq_name'] }::check(buffer, length)) {{")
     b.add_line(f"        return std::nullopt;")
     b.add_line(f"    }}")
     b.add_line(f"    return {{ Viewer(buffer) }};")
