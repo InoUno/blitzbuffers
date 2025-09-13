@@ -72,7 +72,7 @@ where
     #[inline(always)]
     fn decode_helper(&mut self, entity: EntityViewer<'_>, sum: &mut usize) {
         *sum += entity.get_type() as usize;
-        *sum += entity.get_name().len();
+        *sum += entity.get_name().unwrap().len();
 
         let pos = entity.get_position();
         *sum += pos.get_x() as usize;
@@ -81,7 +81,7 @@ where
 
         for related in entity.get_related() {
             *sum += related.get_type() as usize;
-            *sum += related.get_name().len();
+            *sum += related.get_name().unwrap().len();
 
             let pos = related.get_position();
             *sum += pos.get_x() as usize;
