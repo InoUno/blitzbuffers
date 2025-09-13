@@ -17,6 +17,15 @@ init:
 
 # Tests
 
+[working-directory: 'tests/general']
+test-general-codegen:
+    {{py_exe}} ../../src/blitzbuffers schema.bzb \
+        -l rust ./rust/src/schema.rs
+
+[working-directory: 'tests/general/rust']
+test-general-rust:
+    cargo test
+
 [working-directory: 'tests/interlang']
 test-interlang-codegen:
     {{py_exe}} ../../src/blitzbuffers schema.bzb \
@@ -44,10 +53,12 @@ test-interlang-cpp *args: test-interlang-cpp-build
 
 
 test-interlang-gen: test-interlang-codegen test-interlang-cpp test-interlang-rust
-
 test-interlang-check: (test-interlang-cpp "c") (test-interlang-rust "c")
 
-test: test-interlang-gen test-interlang-check
+test-gen: test-general-codegen test-interlang-gen
+test-check: test-general-rust test-interlang-check
+
+test: test-gen test-check
 
 
 # Benchmarking

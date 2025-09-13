@@ -1,6 +1,7 @@
 [workspace]
 members = [
+    "tests/general/rust",
     "tests/interlang/rust",
-    "benchmarks/rust"
+    "benchmarks/rust",
 ]
 resolver = "2"

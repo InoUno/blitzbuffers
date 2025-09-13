@@ -83,17 +83,48 @@ def add_raw_methods(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
     b.skip_line(1)
 
     # Directly to blitz buffer
-    b.add_lines(
-        f"impl { d['fq_name'] } {{",
-        f"  #[inline(always)]",
-        f"  pub fn to_blitz_buffer(&self) -> Vec<u8> {{",
-        f"      let size = self.calc_blitz_size();",
-        f"      let backend = unsafe {{ bzb::UnsafeDirectBufferBackend::new(size as usize) }};",
-        f"      self.copy_onto(&backend);",
-        f"      backend.into_buffer()",
-        f"  }}",
-        f"}}",
-    )
+    if d["dynamic"]:
+        b.add_lines(
+            f"impl { d['fq_name'] } {{",
+            f"    #[inline(always)]",
+            f"    pub fn to_blitz_buffer(&self) -> Vec<u8> {{",
+            f"        let size = self.calc_blitz_size();",
+            f"        let backend = unsafe {{ bzb::UnsafeDirectBufferBackend::new(size as usize) }};",
+            f"        self.copy_onto(&backend);",
+            f"        backend.into_buffer()",
+            f"    }}",
+            f"}}",
+        )
+    else:
+        b.add_line(f"impl { d['fq_name'] } {{")
+        b.increment_indent()
+        b.add_line(f"#[inline(always)]")
+        b.add_line(f"pub fn to_blitz_buffer(&self) -> [u8; { d['size'] }] {{")
+        b.increment_indent()
+        b.add_line(f"unsafe {{")
+        b.increment_indent()
+
+        b.add_line(f"let mut arr: [u8; { d['size'] }] = [0u8; { d['size'] }];")
+        for field in d["fields"]:
+            match field["kind"]:
+                case "primitive":
+                    b.add_line(f"self.{ sanitize_name(field['name']) }.write_le_bytes(arr.get_unchecked_mut({ field['offset'] }..{ field['offset'] + field['size'] }));")
+                case "embed":
+                    b.add_line(
+                        f"arr.get_unchecked_mut({ field['offset'] }..{ field['offset'] + field['size'] }).copy_from_slice(&self.{ sanitize_name(field['name']) }.to_blitz_buffer());"
+                    )
+                case _:
+                    raise Exception(f"Encountered a dynamic field while trying to create direct array construction function: { field['kind'] }")
+
+        b.add_line(f"arr")
+
+        b.decrement_indent()
+        b.add_line(f"}}")
+        b.decrement_indent()
+        b.add_line(f"}}")
+        b.decrement_indent()
+        b.add_line(f"}}")
+
     b.skip_line(1)
 
     # BlitzCheck
@@ -582,7 +613,7 @@ def add_viewer_methods(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
             case "embed":
                 ty = f"{ get_fq_name_from_type(field['type'], ctx) }Viewer"
                 b.add_line(f"#[inline(always)]")
-                b.add_line(f"pub fn get_{ field['name'] }(&self) -> { ty } {{")
+                b.add_line(f"pub fn get_{ field['name'] }(&self) -> { ty }<'_> {{")
                 b.increment_indent()
 
                 b.add_line(f"{ ty }::new_blitz_view(")
@@ -649,7 +680,7 @@ def add_viewer_methods(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
     b.add_line(f"}}")
 
 
-def get_viewer_field_type(ty: str, ctx: DefinitionContext, vector_format_str="bzb::BlitzVector<%s>"):
+def get_viewer_field_type(ty: str, ctx: DefinitionContext, vector_format_str="bzb::BlitzVector<'_, %s>"):
     if isinstance(ty, dict) and "name" in ty:
         ty = ty["name"]
 

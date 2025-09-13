@@ -40,6 +40,7 @@ class BaseDefinition(TypedDict):
     size: int
     id: str
     path: str
+    dynamic: bool
 
 
 class StructDefinition(BaseDefinition):
@@ -49,17 +50,20 @@ class StructDefinition(BaseDefinition):
 
 class EnumDefinition(BaseDefinition):
     kind: DefKind.ENUM
+    enum_size: int
     variants: List[str]
 
 
 class TaggedUnionVariant(TypedDict):
     name: str
     type: Optional[StructDefinition]
+    union: "TaggedUnionDefinition"
 
 
 class TaggedUnionDefinition(BaseDefinition):
     kind: DefKind.TAGGED_UNION
     size: int
+    enum_size: int
     variants: List[TaggedUnionVariant]
 
 

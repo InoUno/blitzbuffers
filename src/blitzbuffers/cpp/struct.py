@@ -27,7 +27,7 @@ def add_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
     b.add_line(f"{{")
     b.increment_indent()
 
-    b.add_line(f"constexpr static bzb::offset_t blitz_size()")
+    b.add_line(f"static constexpr bzb::offset_t blitz_size()")
     b.add_line(f"{{")
     b.add_line(f"    return { d['size'] };")
     b.add_line(f"}}")
@@ -78,8 +78,22 @@ def add_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
     b.add_line(f"    return _raw;")
     b.add_line(f"}}")
 
+    add_shared_static_methods(b, d, ctx)
+
     b.decrement_indent()
     b.add_line(f"}}")
+
+
+def add_shared_static_methods(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
+    if not d["dynamic"]:
+        return_ty = f"std::array<uint8_t, { d['size'] }>"
+        b.skip_line(1)
+        b.add_line(f"static constexpr { return_ty } encode(const Raw& _raw)")
+        b.add_line(f"{{")
+        b.increment_indent()
+        b.add_line(f"return _raw.encode();")
+        b.decrement_indent()
+        b.add_line(f"}}")
 
 
 #
@@ -145,6 +159,30 @@ def add_raw_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionContext)
     if len(d["fields"]) == 0:
         b.add_line(f"Raw() {{}}")
 
+    if not d["dynamic"]:
+        return_ty = f"std::array<uint8_t, { d['size'] }>"
+        b.skip_line(1)
+        b.add_line(f"inline constexpr { return_ty } encode() const")
+        b.add_line(f"{{")
+        b.increment_indent()
+
+        b.add_line(f"{ return_ty } arr;")
+
+        for field in d["fields"]:
+            match field["kind"]:
+                case "primitive":
+                    b.add_line(f"bzb::set_bytes<{ field['offset'] }>(arr, this->{ sanitize_name(field['name']) });")
+                case "embed":
+                    other = ctx["def_mapping"][field["type"]]
+                    b.add_line(f"bzb::set_bytes<{ field['offset'] }>(arr, { other['fq_name'] }::encode(this->{ sanitize_name(field['name']) }));")
+                case _:
+                    raise Exception(f"Encountered a dynamic field while trying to create direct array construction function: { field['kind'] }")
+
+        b.add_line(f"return arr;")
+
+        b.decrement_indent()
+        b.add_line(f"}}")
+
     b.decrement_indent()
     b.add_line(f"}};")
     b.skip_line(1)
@@ -176,7 +214,7 @@ def get_viewer_field_type(ty: str, ctx: DefinitionContext, vector_format_str="bz
     return ty
 
 
-def add_viewer_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionContext, viewer_name="Viewer", raw_path=None):
+def add_viewer_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionContext, viewer_name="Viewer", variant=None):
     b.add_line(f"class { viewer_name }")
     b.add_line(f"{{")
 
@@ -211,7 +249,7 @@ def add_viewer_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionConte
     b.add_line(f"public:")
     b.increment_indent()
 
-    b.add_line(f"constexpr static bzb::offset_t blitz_size()")
+    b.add_line(f"static constexpr bzb::offset_t blitz_size()")
     b.add_line(f"{{")
     b.add_line(f"    return { d['size'] };")
     b.add_line(f"}}")
@@ -252,21 +290,38 @@ def add_viewer_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionConte
                 b.add_line(f"}}")
                 b.skip_line(1)
 
-    b.skip_line(1)
-
-    if raw_path != None:
+    if variant != None:
+        raw_path = f"_ns::{ variant['name'] }::Raw"
+        b.skip_line(1)
         b.add_line(f"static { raw_path } raw()")
         b.add_line(f"{{")
         b.add_line(f"    return { raw_path } {{}};")
         b.add_line(f"}}")
-        b.skip_line(1)
 
+        b.skip_line(1)
         b.add_line(f"static { raw_path } raw({ raw_path } _raw)")
         b.add_line(f"{{")
         b.add_line(f"    return _raw;")
         b.add_line(f"}}")
-        b.skip_line(1)
 
+        if not variant["type"]["dynamic"]:
+            parent = variant["union"]
+            return_ty = f"std::array<uint8_t, { parent['size'] }>"
+
+            b.skip_line(1)
+            b.add_line(f"static constexpr { return_ty } encode(const { raw_path }& _raw)")
+            b.add_line(f"{{")
+            b.increment_indent()
+
+            b.add_line(f"{ return_ty } arr;")
+            b.add_line(f"bzb::set_bytes<0>(arr, _Tag::{ variant['name'] });")
+            b.add_line(f"bzb::set_bytes<{ parent['enum_size'] }>(arr, _raw.encode());")
+            b.add_line(f"return arr;")
+
+            b.decrement_indent()
+            b.add_line(f"}}")
+
+    b.skip_line(1)
     b.add_line(f"static bool check(const uint8_t* buffer, const bzb::offset_t length)")
     b.add_line(f"{{")
     b.increment_indent()
@@ -406,7 +461,7 @@ def add_builder_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionCont
     b.add_line(f"public:")
 
     b.increment_indent()
-    b.add_line(f"constexpr static bzb::offset_t blitz_size()")
+    b.add_line(f"static constexpr bzb::offset_t blitz_size()")
     b.add_line(f"{{")
     b.add_line(f"    return { d['size'] };")
     b.add_line(f"}}")

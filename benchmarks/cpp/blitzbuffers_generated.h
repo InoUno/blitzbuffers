@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -34,7 +35,7 @@ namespace blitzbuffers
 
     // https://stackoverflow.com/questions/64017982/c-equivalent-of-rust-enums
     template <typename Val, typename... Ts>
-    inline auto match(Val&& val, Ts... ts)
+    inline constexpr auto match(Val&& val, Ts... ts)
     {
         return std::visit(overloaded { ts... }, val);
     }
@@ -45,6 +46,22 @@ namespace blitzbuffers
     constexpr typename std::underlying_type<E>::type to_underlying(E e) noexcept
     {
         return static_cast<typename std::underlying_type<E>::type>(e);
+    }
+
+    template <std::size_t Offset, typename T, std::size_t N>
+    constexpr std::array<uint8_t, N> set_bytes(std::array<uint8_t, N>& arr, T value)
+    {
+        static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
+        static_assert(Offset + sizeof(T) <= N, "Value would overflow the array");
+
+        auto bytes = std::bit_cast<std::array<uint8_t, sizeof(T)>>(value);
+
+        for (size_t i = 0; i < sizeof(T); ++i)
+        {
+            arr[Offset + i] = bytes[i];
+        }
+
+        return arr;
     }
 
     class FixedSizeBufferBackend
@@ -904,7 +921,7 @@ namespace bench_blitzbuffers
 // Struct declaration Position
 namespace bench_blitzbuffers::Position
 {
-    constexpr static bzb::offset_t blitz_size()
+    static constexpr bzb::offset_t blitz_size()
     {
         return 12;
     }
@@ -914,6 +931,15 @@ namespace bench_blitzbuffers::Position
         float x;
         float y;
         float z;
+
+        inline constexpr std::array<uint8_t, 12> encode() const
+        {
+            std::array<uint8_t, 12> arr;
+            bzb::set_bytes<0>(arr, this->x);
+            bzb::set_bytes<4>(arr, this->y);
+            bzb::set_bytes<8>(arr, this->z);
+            return arr;
+        }
     };
 
     class Viewer
@@ -938,7 +964,7 @@ namespace bench_blitzbuffers::Position
 
 
     public:
-        constexpr static bzb::offset_t blitz_size()
+        static constexpr bzb::offset_t blitz_size()
         {
             return 12;
         }
@@ -977,7 +1003,7 @@ namespace bench_blitzbuffers::Position
     private:
 
     public:
-        constexpr static bzb::offset_t blitz_size()
+        static constexpr bzb::offset_t blitz_size()
         {
             return 12;
         }
@@ -1052,11 +1078,16 @@ namespace bench_blitzbuffers::Position
     {
         return _raw;
     }
+
+    static constexpr std::array<uint8_t, 12> encode(const Raw& _raw)
+    {
+        return _raw.encode();
+    }
 }
 // Struct declaration Entity
 namespace bench_blitzbuffers::Entity
 {
-    constexpr static bzb::offset_t blitz_size()
+    static constexpr bzb::offset_t blitz_size()
     {
         return 21;
     }
@@ -1091,7 +1122,7 @@ namespace bench_blitzbuffers::Entity
 
 
     public:
-        constexpr static bzb::offset_t blitz_size()
+        static constexpr bzb::offset_t blitz_size()
         {
             return 21;
         }
@@ -1152,7 +1183,7 @@ namespace bench_blitzbuffers::Entity
 
 
     public:
-        constexpr static bzb::offset_t blitz_size()
+        static constexpr bzb::offset_t blitz_size()
         {
             return 21;
         }

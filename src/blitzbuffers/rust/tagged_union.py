@@ -1,6 +1,7 @@
 from ..output_builder import OutputBuilder
 from ..shared import DefinitionContext, Definition
 from . import struct
+from .common import sanitize_name
 
 
 #
@@ -68,18 +69,57 @@ def add_raw_methods(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
     b.skip_line(1)
 
     # Directly to blitz buffer
-    b.add_lines(
-        f"impl { d['name'] } {{",
-        f"  #[inline(always)]",
-        f"  pub fn to_blitz_buffer(&self) -> Vec<u8> {{",
-        f"      let size = self.calc_blitz_size();",
-        f"      let backend = unsafe {{ bzb::UnsafeDirectBufferBackend::new(size as usize) }};",
-        f"      self.copy_onto(&backend);",
-        f"      backend.into_buffer()",
-        f"  }}",
-        f"}}",
-    )
-    b.skip_line(1)
+    if d["dynamic"]:
+        b.add_lines(
+            f"impl { d['fq_name'] } {{",
+            f"    #[inline(always)]",
+            f"    pub fn to_blitz_buffer(&self) -> Vec<u8> {{",
+            f"        let size = self.calc_blitz_size();",
+            f"        let backend = unsafe {{ bzb::UnsafeDirectBufferBackend::new(size as usize) }};",
+            f"        self.copy_onto(&backend);",
+            f"        backend.into_buffer()",
+            f"    }}",
+            f"}}",
+        )
+    else:
+        b.add_line(f"impl { d['fq_name'] } {{")
+        b.increment_indent()
+        b.add_line(f"#[inline(always)]")
+        b.add_line(f"pub fn to_blitz_buffer(&self) -> [u8; { d['size'] }] {{")
+        b.increment_indent()
+
+        enum_ty = f"u{ d['enum_size'] * 8 }"
+        b.add_line(f"unsafe {{")
+        b.increment_indent()
+
+        b.add_line(f"let mut arr: [u8; { d['size'] }] = [0u8; { d['size'] }];")
+
+        b.add_line(f"match self {{")
+        b.increment_indent()
+        b.add_line(f"{ d['name'] }::_None => (),")
+
+        for variant in d["variants"]:
+            b.add_line(f"{ d['name'] }::{ variant['name'] }(v) => {{")
+            b.increment_indent()
+
+            b.add_line(f"{ variant['tag'] }{ enum_ty }.write_le_bytes(arr.get_unchecked_mut(0..{ d['enum_size'] }));")
+            b.add_line(f"arr.get_unchecked_mut({ d['enum_size'] }..{ d['enum_size'] + variant['size'] }).copy_from_slice(&v.to_blitz_buffer());")
+
+            b.decrement_indent()
+            b.add_line(f"}}")
+
+        b.decrement_indent()
+        b.add_line(f"}}")
+
+        b.add_line(f"arr")
+
+        b.decrement_indent()
+        b.add_line(f"}}")
+
+        b.decrement_indent()
+        b.add_line(f"}}")
+        b.decrement_indent()
+        b.add_line(f"}}")
 
     # BlitzCheck
     b.add_line(f"impl bzb::BlitzCheck for { d['name'] } {{")

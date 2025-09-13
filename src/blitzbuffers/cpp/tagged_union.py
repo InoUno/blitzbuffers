@@ -13,6 +13,18 @@ def add_forward_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionCont
     b.add_line(f"{{")
     b.increment_indent()
 
+    b.add_line(f"enum class _Tag : { d['enum_underlying_type'] }")
+    b.add_line(f"{{")
+    b.increment_indent()
+    b.add_line(f"_None = 0,")
+
+    for variant in d["variants"]:
+        b.add_line(f"{ variant['name'] } = { variant['tag'] },")
+
+    b.decrement_indent()
+    b.add_line(f"}};")
+    b.skip_line(1)
+
     # The "none" viewer variant
     b.add_line(f"class _None")
     b.add_line(f"{{}};")
@@ -92,7 +104,7 @@ def add_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
         b.add_line(f"}}")
 
         b.skip_line(1)
-        struct.add_viewer_declaration(b, variant["type"], ctx, viewer_name=variant["name"], raw_path=f"_ns::{ variant['name'] }::Raw")
+        struct.add_viewer_declaration(b, variant["type"], ctx, viewer_name=variant["name"], variant=variant)
         b.skip_line(1)
 
     b.decrement_indent()
@@ -104,23 +116,11 @@ def add_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
     b.add_line(f"{{")
     b.increment_indent()
 
-    b.add_line(f"enum class _Tag : { d['enum_underlying_type'] }")
-    b.add_line(f"{{")
-    b.increment_indent()
-    b.add_line(f"_None = 0,")
-
-    for variant in d["variants"]:
-        b.add_line(f"{ variant['name'] } = { variant['tag'] },")
-
-    b.decrement_indent()
-    b.add_line(f"}};")
-    b.skip_line(1)
-
     add_viewer_declaration(b, d, ctx)
     add_builder_declaration(b, d, ctx)
     b.skip_line(1)
 
-    b.add_line(f"constexpr static bzb::offset_t blitz_size()")
+    b.add_line(f"static constexpr bzb::offset_t blitz_size()")
     b.add_line(f"{{")
     b.add_line(f"    return { d['size'] };")
     b.add_line(f"}}")
@@ -154,6 +154,42 @@ def add_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
     b.add_line(f"{{")
     b.add_line(f"    return Viewer(buffer);")
     b.add_line(f"}}")
+
+    if not d["dynamic"]:
+        return_ty = f"std::array<uint8_t, { d['size'] }>"
+        b.skip_line(1)
+        b.add_line(f"static constexpr { return_ty } encode(raw_variant_t variant)")
+        b.add_line(f"{{")
+        b.increment_indent()
+
+        b.add_line(f"{ return_ty } arr;")
+
+        # new
+        b.add_line(f"blitzbuffers::match(")
+        b.increment_indent()
+
+        b.add_line_without_newline(f"variant")
+
+        for variant in d["variants"]:
+            b.add_line_unindented(f",")
+            variant_fq_name = f"{ d['fq_name'] }::_ns::{ variant['name'] }"
+            b.add_line(f"[&arr]({ variant_fq_name }::Raw _raw)")
+            b.add_line(f"{{")
+            b.increment_indent()
+            b.add_line(f"bzb::set_bytes<0>(arr, _Tag::{ variant['name'] });")
+            b.add_line(f"bzb::set_bytes<{ d['enum_size'] }>(arr, _raw.encode());")
+            b.decrement_indent()
+            b.add_line_without_newline(f"}}")
+
+        b.add_line_unindented(f"")
+        b.decrement_indent()
+        b.add_line(f");")
+        b.skip_line(1)
+
+        b.add_line(f"return arr;")
+
+        b.decrement_indent()
+        b.add_line(f"}}")
 
     b.decrement_indent()
     b.add_line(f"}};")
@@ -313,7 +349,7 @@ def add_builder_declaration(b: OutputBuilder, d: Definition, ctx: DefinitionCont
     b.increment_indent()
     b.skip_line(1)
 
-    b.add_line(f"constexpr static uint32_t blitz_size()")
+    b.add_line(f"static constexpr uint32_t blitz_size()")
     b.add_line(f"{{")
     b.add_line(f"    return { d['size'] };")
     b.add_line(f"}}")

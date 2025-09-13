@@ -16,9 +16,11 @@ pub mod blitzbuffers {
             impl PrimitiveByteFunctions for $byte_type {
                 #[inline(always)]
                 unsafe fn write_le_bytes(&self, bytes: &mut [u8]) {
-                    bytes
-                        .get_unchecked_mut(..size_of::<Self>())
-                        .copy_from_slice(&self.to_le_bytes())
+                    unsafe {
+                        bytes
+                            .get_unchecked_mut(..size_of::<Self>())
+                            .copy_from_slice(&self.to_le_bytes())
+                    }
                 }
 
                 #[inline(always)]
@@ -75,9 +77,11 @@ pub mod blitzbuffers {
     impl PrimitiveByteFunctions for bool {
         #[inline(always)]
         unsafe fn write_le_bytes(&self, bytes: &mut [u8]) {
-            bytes
-                .get_unchecked_mut(..size_of::<u8>())
-                .copy_from_slice(&(if *self { 1u8 } else { 0u8 }).to_le_bytes())
+            unsafe {
+                bytes
+                    .get_unchecked_mut(..size_of::<u8>())
+                    .copy_from_slice(&(if *self { 1u8 } else { 0u8 }).to_le_bytes())
+            }
         }
 
         #[inline(always)]
@@ -507,13 +511,15 @@ pub mod blitzbuffers {
         #[inline(always)]
         pub(crate) unsafe fn new(size: usize) -> UnsafeBlitzBufferBackend<Self> {
             let mut buffer = Vec::with_capacity(size);
-            buffer.set_len(size);
-            UnsafeBlitzBufferBackend {
-                backend: UnsafeDirectBufferBackend {
-                    buffer,
-                    current_size: 0,
+            unsafe {
+                buffer.set_len(size);
+                UnsafeBlitzBufferBackend {
+                    backend: UnsafeDirectBufferBackend {
+                        buffer,
+                        current_size: 0,
+                    }
+                    .into(),
                 }
-                .into(),
             }
         }
     }

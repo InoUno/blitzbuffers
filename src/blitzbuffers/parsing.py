@@ -288,28 +288,28 @@ def validate_type(type, context: DefinitionContext, current_def_path=[]) -> None
 
 def get_type_info(type, def_mappings, current_path):
     if isinstance(type, str) and type in PRIMITIVE_BYTE_SIZES:
-        return PRIMITIVE_BYTE_SIZES[type], "primitive"
+        return PRIMITIVE_BYTE_SIZES[type], "primitive", False
 
     elif isinstance(type, str) and type == "string":
-        return OFFSET_BYTE_SIZE, "string"
+        return OFFSET_BYTE_SIZE, "string", True
 
     elif isinstance(type, dict):
         if "container" in type:
             if type["container"] == "vector":
-                return OFFSET_BYTE_SIZE, "vector"
+                return OFFSET_BYTE_SIZE, "vector", True
 
         size = prepare_and_calculate_size(type, def_mappings, current_path)
         if is_enum(type):
-            return size, "primitive"
+            return size, "primitive", False
         else:
-            return size, "embed"
+            return size, "embed", type["dynamic"]
 
     elif isinstance(type, str) and type in def_mappings:
         size = prepare_and_calculate_size(def_mappings[type], def_mappings, current_path)
         if is_enum(def_mappings[type]):
-            return size, "primitive"
+            return size, "primitive", False
         else:
-            return size, "embed"
+            return size, "embed", def_mappings[type]["dynamic"]
 
     else:
         raise Exception(f"Unknown type size for: '{type}'")
@@ -368,12 +368,18 @@ def prepare_and_calculate_size(definition: Definition, def_mappings: DefMapping,
 
         definition["enum_size"] = enum_size
 
+    definition["dynamic"] = False
+    field_is_dynamic = False
+
     current_size = 0
     if is_struct(definition):
         for field in definition["fields"]:
             field["offset"] = current_size
-            field["size"], field["kind"] = get_type_info(field["type"], def_mappings, rec_stack)
+            field["size"], field["kind"], field_is_dynamic = get_type_info(field["type"], def_mappings, rec_stack)
             current_size = current_size + field["size"]
+
+            if field_is_dynamic and not definition["dynamic"]:
+                definition["dynamic"] = True
 
     elif is_enum(definition):
         current_size = definition["enum_size"]
@@ -384,11 +390,15 @@ def prepare_and_calculate_size(definition: Definition, def_mappings: DefMapping,
         max_variant_size = 0
         for idx, variant in enumerate(definition["variants"]):
             variant["tag"] = idx + 1
+            variant["union"] = definition
 
             variant_size = prepare_and_calculate_size(variant["type"], def_mappings, rec_stack)
             variant["size"] = variant_size
             if variant_size > max_variant_size:
                 max_variant_size = variant_size
+
+            if variant["type"]["dynamic"] and not definition["dynamic"]:
+                definition["dynamic"] = True
 
         current_size = current_size + max_variant_size
 
