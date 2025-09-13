@@ -12,9 +12,21 @@ def add_definition(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
     add_raw_methods(b, d, ctx)
     add_builder(b, d, ctx)
     add_viewer(b, d, ctx)
+    add_viewer_methods(b, d, ctx)
 
     for variant in d["variants"]:
         struct.add_definition(b, variant["type"], ctx)
+
+        # From variant struct to tagged union
+        b.add_lines(
+            f"impl From<{ variant['fq_name'] }> for { d['name'] } {{",
+            f"    #[inline(always)]",
+            f"    fn from(value: { variant['fq_name'] }) -> { d['name'] } {{",
+            f"        { d['name'] }::{ variant['name'] }(value)",
+            f"    }}",
+            f"}}",
+        )
+        b.skip_line(1)
 
 
 def add_raw(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
@@ -357,6 +369,36 @@ def add_viewer(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
     b.decrement_indent()
     b.add_line(f"}}")
 
+    b.decrement_indent()
+    b.add_line(f"}}")
+    b.skip_line(1)
+
+
+def add_viewer_methods(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
+    # To raw
+    b.add_line(f"impl<'a> bzb::BlitzToRaw for { d['fq_name'] }Viewer<'a>")
+    b.add_line(f"{{")
+    b.increment_indent()
+    b.add_line(f"type RawType = { d['fq_name'] };")
+    b.skip_line(1)
+
+    b.add_line(f"#[inline(always)]")
+    b.add_line(f"fn get_blitz_raw(&self) -> Self::RawType")
+    b.add_line(f"{{")
+    b.increment_indent()
+
+    b.add_line(f"match self {{")
+    b.increment_indent()
+
+    for variant in d["variants"]:
+        b.add_line(f"{ d['name'] }Viewer::{ variant['name'] }(v) => v.get_blitz_raw().into(),")
+
+    b.add_line(f"{ d['name'] }Viewer::_None => { d['name'] }::_None,")
+    b.decrement_indent()
+    b.add_line(f"}}")
+
+    b.decrement_indent()
+    b.add_line(f"}}")
     b.decrement_indent()
     b.add_line(f"}}")
     b.skip_line(1)

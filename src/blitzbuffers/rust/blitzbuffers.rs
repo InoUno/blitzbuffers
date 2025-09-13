@@ -50,6 +50,15 @@ pub mod blitzbuffers {
                 }
             }
 
+            impl BlitzToRaw for $byte_type {
+                type RawType = $byte_type;
+
+                #[inline(always)]
+                fn get_blitz_raw(&self) -> Self::RawType {
+                    *self
+                }
+            }
+
             impl BlitzViewer<'_> for $byte_type {
                 #[inline(always)]
                 fn new_blitz_view(buffer: &[u8]) -> Self {
@@ -163,6 +172,15 @@ pub mod blitzbuffers {
             } else {
                 size_of::<u32>() as u32 // Offset
             }
+        }
+    }
+
+    impl BlitzToRaw for &str {
+        type RawType = String;
+
+        #[inline(always)]
+        fn get_blitz_raw(&self) -> Self::RawType {
+            self.to_string()
         }
     }
 
@@ -673,6 +691,12 @@ pub mod blitzbuffers {
 
     pub trait BlitzCopyFrom<T> {
         fn copy_from(&mut self, value: T);
+    }
+
+    pub trait BlitzToRaw {
+        type RawType;
+
+        fn get_blitz_raw(&self) -> Self::RawType;
     }
 
     pub trait BlitzBuilder<'a, Backend> {
@@ -1372,6 +1396,19 @@ pub mod blitzbuffers {
         }
     }
 
+    impl<'a, T> BlitzToRaw for BlitzVector<'a, T>
+    where
+        T: BlitzToRaw + BlitzSized + BlitzViewer<'a>,
+        Vec<<T as BlitzToRaw>::RawType>: FromIterator<<T as BlitzToRaw>::RawType>,
+    {
+        type RawType = Vec<<T as BlitzToRaw>::RawType>;
+
+        #[inline(always)]
+        fn get_blitz_raw(&self) -> Self::RawType {
+            self.iter().map(|v| v.get_blitz_raw()).collect()
+        }
+    }
+
     impl<'a, T> BlitzVector<'a, T> {
         #[inline(always)]
         pub fn offset(&self) -> u32 {
@@ -1387,6 +1424,14 @@ pub mod blitzbuffers {
                     size_of::<u32>(),
                 ))
             }
+        }
+
+        #[inline(always)]
+        pub fn iter(&self) -> BlitzIter<'a, T>
+        where
+            T: BlitzSized + BlitzViewer<'a>,
+        {
+            BlitzIter::from_vector(self)
         }
     }
 
@@ -1482,6 +1527,19 @@ pub mod blitzbuffers {
         #[inline(always)]
         fn into_iter(self) -> Self::IntoIter {
             BlitzIter::from_vector(&self)
+        }
+    }
+
+    impl<'a, T> IntoIterator for &'_ BlitzVector<'a, T>
+    where
+        T: BlitzSized + BlitzViewer<'a>,
+    {
+        type Item = T;
+        type IntoIter = BlitzIter<'a, T>;
+
+        #[inline(always)]
+        fn into_iter(self) -> Self::IntoIter {
+            BlitzIter::from_vector(self)
         }
     }
 

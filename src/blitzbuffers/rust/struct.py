@@ -162,6 +162,15 @@ def add_raw_methods(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
     b.add_line(f"}}")
     b.skip_line(1)
 
+    # From viewer
+    # b.add_line(f"impl From<{ d['fq_name'] }Viewer<'_>> for { d['fq_name'] } {{")
+    # b.increment_indent()
+    # b.add_line(f"fn from(&self) -> { d['fq_name'] } {{")
+
+    # for field in d["fields"]:
+    #     match field["kind"]:
+    #         pass
+
     # Impl methods
     b.add_line(f"impl { d['fq_name'] } {{")
     b.increment_indent()
@@ -580,11 +589,48 @@ def add_viewer(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
     )
     b.skip_line(1)
 
+    # To raw
+    b.add_line(f"impl<'a> bzb::BlitzToRaw for { d['fq_name'] }Viewer<'a>")
+    b.add_line(f"{{")
+    b.increment_indent()
+    b.add_line(f"type RawType = { d['fq_name'] };")
+    b.skip_line(1)
+
+    b.add_line(f"#[inline(always)]")
+    b.add_line(f"fn get_blitz_raw(&self) -> Self::RawType")
+    b.add_line(f"{{")
+    b.increment_indent()
+
+    b.add_line(f"{ d['fq_name'] } {{")
+    b.increment_indent()
+
+    for field in d["fields"]:
+        match field["kind"]:
+            case "embed":
+                b.add_line(f"{ sanitize_name(field['name']) }: self.get_{ field['name'] }().get_blitz_raw(),")
+
+            case "primitive":
+                b.add_line(f"{ sanitize_name(field['name']) }: self.get_{ field['name'] }(),")
+
+            case "string":
+                b.add_line(f"{ sanitize_name(field['name']) }: str::from_utf8(self.get_{ field['name'] }_bytes()).unwrap().to_string(),")
+
+            case "vector":
+                b.add_line(f"{ sanitize_name(field['name']) }: self.get_{ field['name'] }().into_iter().map(|v| v.get_blitz_raw()).collect(),")
+
+    b.decrement_indent()
+    b.add_line(f"}}")
+    b.decrement_indent()
+    b.add_line(f"}}")
+    b.decrement_indent()
+    b.add_line(f"}}")
+    b.skip_line(1)
+
+    # Constructor
     b.add_line(f"impl<'a> bzb::BlitzViewer<'a> for { d['fq_name'] }Viewer<'a>")
     b.add_line(f"{{")
     b.increment_indent()
 
-    # Constructor
     b.add_line(f"#[inline(always)]")
     b.add_line(f"fn new_blitz_view(buffer: &'a [u8]) -> Self {{")
     b.increment_indent()
@@ -608,6 +654,7 @@ def add_viewer_methods(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
     b.add_line(f"{{")
     b.increment_indent()
 
+    # Field getters
     for field in d["fields"]:
         match field["kind"]:
             case "embed":
@@ -624,7 +671,6 @@ def add_viewer_methods(b: OutputBuilder, d: Definition, ctx: DefinitionContext):
 
                 b.decrement_indent()
                 b.add_line(f"}}")
-                pass
 
             case "primitive":
                 ty = get_fq_name_from_type(field["type"], ctx)

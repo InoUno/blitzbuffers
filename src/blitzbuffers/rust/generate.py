@@ -26,7 +26,7 @@ def add_file_contents(b: OutputBuilder, ctx: DefinitionContext):
 
     b.add_line(f"use std::{{borrow::Borrow, iter::Zip}};")
     b.add_line(
-        f"use { '::'.join(bzb_path) }::{{self as bzb, BlitzBuilder, BlitzCalcSize, BlitzCheck, BlitzCopyFrom, BlitzSized, BlitzVector, BlitzViewer, PrimitiveByteFunctions}};"
+        f"use { '::'.join(bzb_path) }::{{self as bzb, BlitzBuilder, BlitzCalcSize, BlitzCheck, BlitzCopyFrom, BlitzSized, BlitzToRaw, BlitzVector, BlitzViewer, PrimitiveByteFunctions}};"
     )
     b.skip_line(1)
 
