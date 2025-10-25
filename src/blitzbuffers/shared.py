@@ -44,12 +44,12 @@ class BaseDefinition(TypedDict):
 
 
 class StructDefinition(BaseDefinition):
-    kind: DefKind.STRUCT
+    kind: DefKind = DefKind.STRUCT
     fields: List[StructField]
 
 
 class EnumDefinition(BaseDefinition):
-    kind: DefKind.ENUM
+    kind: DefKind = DefKind.ENUM
     enum_size: int
     variants: List[str]
 
@@ -61,7 +61,7 @@ class TaggedUnionVariant(TypedDict):
 
 
 class TaggedUnionDefinition(BaseDefinition):
-    kind: DefKind.TAGGED_UNION
+    kind: DefKind = DefKind.TAGGED_UNION
     size: int
     enum_size: int
     variants: List[TaggedUnionVariant]
